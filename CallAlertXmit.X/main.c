@@ -127,6 +127,18 @@
 const uint8_t strip1_addr[ADDR_LEN] = { 'T', 'N', 'E', 'T', 0xAA };
 const uint8_t strip2_addr[ADDR_LEN] = { 'T', 'N', 'E', 'T', 0xBB };
 
+volatile uint16_t ticks = 0;
+
+void __interrupt() isr(void) {
+    if (INTCONbits.PEIE) {
+        if (PIE4bits.TMR2IE && PIR4bits.TMR2IF) {
+            PIR4bits.TMR2IF = 0;
+            
+            ticks++;
+        }
+    }
+}
+
 void init_ports(void) {
     /* Disable all analog features */
     ANSELA = 0x00;
@@ -170,6 +182,17 @@ void init_osc(void) {
     OSCCON1bits.NDIV = 0b0000;
 }
 
+void init_timer(void) {
+    /* Timer2 source is Fosc/4 */
+    T2CLKCONbits.CS = 0b0001;
+    
+    /* Timer2 prescaler is 1:4 - tick rate at Fosc = 4 MHz is 250,000/sec */
+    T2CONbits.CKPS = 0b010;
+    
+    /* Timer2 interrupt fires every 1 ms */
+    T2PR = 250;
+}
+
 void init_spi(void) {
     /* Set MSSP1 to SPI Master mode, clock = Fosc / 4 = 1 MHz at Fosc = 4 MHz */
     SSP1CON1bits.SSPM = 0b0000;
@@ -210,6 +233,10 @@ void init_pps(void) {
     
     /* Restore global interrupt state */
     INTCONbits.GIE = state;
+}
+
+void init_interrupts(void) {
+    PIE4bits.TMR2IE = 1;
 }
 
 void init_rf(void) {
@@ -334,6 +361,10 @@ void main(void) {
     init_spi();
     init_pps();
     init_rf();
+    init_interrupts();
+    
+    INTCONbits.PEIE = 1;
+    INTCONbits.GIE = 1;
     
     led_test();
 
