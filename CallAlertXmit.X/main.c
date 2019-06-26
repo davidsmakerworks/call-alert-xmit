@@ -97,6 +97,7 @@
 #include <stdbool.h>
 
 #include "nRF24L01P.h"
+#include "nRF24L01P-cfg.h"
 
 #ifndef RF_CHANNEL
 #error RF_CHANNEL must be defined
@@ -302,9 +303,9 @@ bool send_packet(uint8_t *addr, uint8_t *buf, uint8_t len)
     nrf24_write_payload(buf, len);
 
     /* Strobe RF CE line to send one packet of data */
-    NRF24_CE = 1;
+    NRF24_CE_ACTIVE();
     __delay_us(15);
-    NRF24_CE = 0;
+    NRF24_CE_IDLE();
 
     while (NRF24_IRQ);
     

@@ -2,8 +2,10 @@
  * Application-specific configuration values for nRF24L01+
  *
  * Requires definitions for:
- * NRF24_CSN - CSN (active low) pin on nRF24L01+
- * NRF24_CE - Chip Enable pin on nRF24L01+
+ * NRF24_CSN_ACTIVE() - Macro to set CSN pin low
+ * NRF24_CSN_IDLE() - Macro to set CSN pin high
+ * NRF24_CE_ACTIVE() - Macro to set CE pin high
+ * NRF24_CE_IDLE() - Macro to set CE pin low
  * NRF24_IRQ - Interrupt pin (active low) on nRF24L01+
  * NRF24_XFER_SPI(x) - Transfer one byte to/from SPI bus without changing CSN
  * 
@@ -20,9 +22,11 @@ extern "C" {
 
 #include <xc.h>
 
-#define NRF24_CSN   LATBbits.LATB1
-#define NRF24_CE    LATBbits.LATB0
-#define NRF24_IRQ   PORTBbits.RB5
+#define NRF24_CSN_ACTIVE()  LATBbits.LATB1 = 0
+#define NRF24_CSN_IDLE()    LATBbits.LATB1 = 1    
+#define NRF24_CE_ACTIVE()   LATBbits.LATB0 = 1
+#define NRF24_CE_IDLE()     LATBbits.LATB0 = 1
+#define NRF24_IRQ           PORTBbits.RB5
 
 #define NRF24_XFER_SPI(x)   transfer_spi(x)
 
